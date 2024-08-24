@@ -1,0 +1,10 @@
+### POST cloudvent to broker
+POST http://localhost:8888/cloudevent
+Content-Type: "application/cloudevents+json"
+Content-Length: 89
+
+{"specversion":"1.0","id":"hello","source":"http://localhost.lan","type":"example.vertx"}
+
+### GET eventbinding map
+GET http://localhost:8888/cloudevent
+Accept: "plain/text"
