@@ -1,0 +1,4 @@
+{
+	"EVENTBOX_EVENTMAP_URL":"http://localhost:8080/api/eventbinding",
+	"EVENTBOX_BROKER_PORT" : 3000
+}
