@@ -19,9 +19,29 @@
 		<vertx.version>4.5.8</vertx.version>
 		<junit-jupiter.version>5.9.1</junit-jupiter.version>
 
-		<main.verticle>dev.cherattk.eventbox.broker.MainVerticle</main.verticle>
+		<main.verticle>dev.cherattk.eventbox.broker.BrokerVerticle</main.verticle>
 		<launcher.class>io.vertx.core.Launcher</launcher.class>
+		    
 	</properties>
+	
+	
+
+	<profiles>
+		<profile>
+			<id>development</id>
+			<properties>
+				<env>dev</env>
+				<server.port>8080</server.port>
+			</properties>
+		</profile>
+		<profile>
+			<id>production</id>
+			<properties>
+				<env>prod</env>
+				<server.port>8443</server.port>
+			</properties>
+		</profile>
+	</profiles>
 
 	<dependencyManagement>
 		<dependencies>
@@ -45,10 +65,10 @@
 			<groupId>io.vertx</groupId>
 			<artifactId>vertx-web-client</artifactId>
 		</dependency>
-		
+
 		<dependency>
-		 <groupId>io.vertx</groupId>
-		 <artifactId>vertx-config</artifactId>
+			<groupId>io.vertx</groupId>
+			<artifactId>vertx-config</artifactId>
 		</dependency>
 
 		<dependency>

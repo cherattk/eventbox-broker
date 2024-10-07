@@ -7,6 +7,7 @@ import java.util.Map.Entry;
 
 import io.cloudevents.CloudEvent;
 import io.cloudevents.http.vertx.VertxMessageFactory;
+import io.cloudevents.rw.CloudEventRWException;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonArray;
@@ -19,9 +20,11 @@ import io.vertx.ext.web.codec.BodyCodec;
 
 public class EventManager {
 
-	private Map<String, JsonArray> eventBinding = new HashMap<String, JsonArray>();
+	private Map<String, JsonArray> eventBindingMap = new HashMap<String, JsonArray>();
 
 	private WebClient webClient;
+
+	private static final String CLOUDEVENT_CONTENT_TYPE_HEADER = "application/cloudevents+json";
 
 	public EventManager(WebClient client) {
 		this.webClient = client;
@@ -30,10 +33,42 @@ public class EventManager {
 	public void readPublishedEvent(RoutingContext routingContext) {
 		HttpServerRequest request = routingContext.request();
 		VertxMessageFactory.createReader(request).onSuccess(messageReader -> {
-			CloudEvent event = messageReader.toEvent();
-			System.out.println("received : " + event.toString());
-			DeliverEvent(event);
-			routingContext.response().setStatusCode(200).end();
+
+			try {
+
+				// Receive event
+				CloudEvent ceEvent = messageReader.toEvent();
+
+				// event validation
+				String eventKey = getEventKey(ceEvent.getSource().toString(), ceEvent.getType());
+				if (!eventBindingMap.containsKey(eventKey)) {
+					JsonObject response = new JsonObject();
+					response.put("message", "cloudevent with theses attributes does note exist : " + "source:"
+							+ ceEvent.getSource() + "," + "type:" + ceEvent.getType());
+					routingContext.response().setStatusCode(404).putHeader("Content-Type", "application/json")
+							.end(response.encode());
+					return;
+				}
+
+				JsonArray listenerArray = eventBindingMap.get(eventKey);
+				if (listenerArray.isEmpty()) {
+					JsonObject response = new JsonObject();
+					response.put("message", "cloudevent with theses attribute has not listener" + " source :"
+							+ ceEvent.getSource() + " , " + " type : " + ceEvent.getType());
+					routingContext.response().setStatusCode(404).putHeader("Content-Type", "application/json")
+							.end(response.encode());
+					return;
+				}
+
+				// everything is OK
+				notifyListener(ceEvent);
+				routingContext.response().setStatusCode(200).end();
+
+			} catch (Exception error) {
+				System.out.println(error.getMessage());
+				routingContext.response().setStatusCode(400).end();
+			}
+
 		}).onFailure(error -> {
 			System.out.println(error.getMessage());
 			routingContext.response().setStatusCode(400).end();
@@ -47,39 +82,34 @@ public class EventManager {
 	 * @param ceType
 	 * @return
 	 */
-	public String getCloudeventkey(String ceSource, String ceType) {
+	public String getEventKey(String ceSource, String ceType) {
 		return ceSource + "," + ceType;
 	}
 
-	public void DeliverEvent(CloudEvent ceEvent) {
-		String eventKey = getCloudeventkey(ceEvent.getSource().toString(), ceEvent.getType());
-		System.out.println("published event : " + eventKey);
+	public void pushHttpNotification(CloudEvent ceEvent, String absoluteListenerEndpoint) {
 
-		if (eventBinding.containsKey(eventKey)) {
-			JsonArray listenerArray = eventBinding.get(eventKey);
-			if (listenerArray != null) {
-				String absoluteListenerUrl = "";
-				for (Iterator<Object> iterator = listenerArray.iterator(); iterator.hasNext();) {
-					JsonObject listener = (JsonObject) iterator.next();
-					absoluteListenerUrl = listener.getString("url");
-					System.out.println("listener url : " + absoluteListenerUrl);
-//			System.out.println();
-				}
-			}
-			else {
-				System.out.println("=== event with key ["+ eventKey + "] has not listeners === ");
-			}
-		} else {
-			System.out.println("=== event with key ["+ eventKey + "] does not exists === ");
+		VertxMessageFactory.createWriter(webClient.postAbs(absoluteListenerEndpoint))
+				.writeStructured(ceEvent, CLOUDEVENT_CONTENT_TYPE_HEADER).onSuccess(response -> {
+					// TODO : Log Success into database
+					System.out.println("successfully sent event to listener endpoint : " + absoluteListenerEndpoint);
+				}).onFailure(error -> {
+					System.out.println(error.getMessage());
+					// TODO : Log Failure into database
+					System.out.println("Fail when sending event to listener endpoint : " + absoluteListenerEndpoint);
+				});
+	}
+
+	public void notifyListener(CloudEvent ceEvent) {
+
+		String eventKey = getEventKey(ceEvent.getSource().toString(), ceEvent.getType());
+		JsonArray listenerArray = eventBindingMap.get(eventKey);
+		String absoluteListenerUrl = "";
+		for (Iterator<Object> iterator = listenerArray.iterator(); iterator.hasNext();) {
+			JsonObject listener = (JsonObject) iterator.next();
+			absoluteListenerUrl = listener.getString("url");
+			pushHttpNotification(ceEvent, absoluteListenerUrl);
 		}
 
-//		VertxMessageFactory.createWriter(webClient.postAbs(absoluteListenerUrl))
-//				.writeStructured(event, "application/cloudevents+json").onSuccess(response -> {
-//					// Logg Success event into database
-//				}).onFailure(error -> {
-//					System.out.println(error.getMessage());
-//					// Logg Fail event into database
-//				});
 	}
 
 	/**
@@ -89,20 +119,16 @@ public class EventManager {
 		JsonParser eventBindingParser = JsonParser.newParser().arrayValueMode();
 		eventBindingParser.handler(event -> {
 			JsonArray object = event.arrayValue();
-			if (object != null) {
-				System.out.println("======== start parsing json ========");
-				// for (Entry<String, Object> entry : object) {
-				for (Object entry : object) {
-					JsonObject jsonObj = (JsonObject) entry;
-					JsonObject ceEvent = jsonObj.getJsonObject("event");
-					String ceKey = getCloudeventkey(ceEvent.getString("source"), ceEvent.getString("type"));
-					eventBinding.put(ceKey, jsonObj.getJsonArray("listeners"));
-
-//					System.out.println(jsonObj.getJsonObject("event").getString("id"));
-//					System.out.println(jsonObj.getJsonArray("listeners"));
+				if (object != null) {
+					for (Object entry : object) {
+						JsonObject jsonObj = (JsonObject) entry;
+						JsonObject ceEvent = jsonObj.getJsonObject("event");
+						String ceKey = getEventKey(ceEvent.getString("source"), ceEvent.getString("type"));
+						eventBindingMap.put(ceKey, jsonObj.getJsonArray("listeners"));
+					}
+					System.out.print("INFO: ");
+					System.out.println("Event/Listener Map Size : " + eventBindingMap.size());
 				}
-				System.out.println("======== end parsing json ========");
-			}
 		});
 
 		return eventBindingParser;

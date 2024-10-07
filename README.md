@@ -1,4 +1,4 @@
-A CloudEvents Broker
+A Cloudevents Broker
 =====
 
 ![vert.x version](https://img.shields.io/badge/vert.x-4.5.8-purple.svg)
@@ -16,10 +16,6 @@ To package your application:
 ```shell
 ./mvnw clean package
 ```
-
-IMPORTANT
-=====
-[EventBox-Admin](https://github.com/cherattk/eventbox-admin) must be started **Before** running the broker
 
 To Run
 =====
