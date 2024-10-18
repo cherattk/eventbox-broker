@@ -36,9 +36,7 @@ public class BrokerVerticle extends AbstractVerticle {
 
 	private static final String EVENTBOX_BROKER_AUTH_TOKEN = System.getenv("EVENTBOX_BROKER_AUTH_TOKEN");
 	
-	public void stopApplication(String message) {
-		System.err.println();
-		System.err.println(message);
+	public void stopApplication() {
 		vertx.close();
 		System.exit(0);
 	}
@@ -62,18 +60,15 @@ public class BrokerVerticle extends AbstractVerticle {
 
 		JsonParser parser = eventManager.getEventBindingParser();
 		parser.exceptionHandler(throwable -> {
-			System.err.println("Fail Parsing Event/Listener Binding");
-			System.err.println(throwable.getMessage());
-			stopApplication("Fail Parsing Event/Listener Binding");
+			System.err.println("Fail Parsing Event/Listener Binding Map, Caused By: " 
+								+ throwable.getMessage());
+			stopApplication();
 		});
 		
 		BodyCodec<Void> bodyCodec = BodyCodec.jsonStream(parser);
 		
 		System.out.println();
 		System.out.println("======================== EVENTBOX BROKER ========================");
-		
-		System.out.print("INFO: ");
-		System.out.println("Loading Event/Listener Map from : " + EVENTBOX_ADMIN_BINDINGMAP_ENDPOINT);
 		
 		webClient.requestAbs(HttpMethod.GET, EVENTBOX_ADMIN_BINDINGMAP_ENDPOINT)
 				.authentication(new TokenCredentials(EVENTBOX_BROKER_AUTH_TOKEN))
@@ -90,16 +85,22 @@ public class BrokerVerticle extends AbstractVerticle {
 					server.listen(brokerPort, brokerHost , http -> {
 						if (http.succeeded()) {
 							startPromise.complete();
-							System.out.println("EVENTBOX Broker started at " +  brokerHost + ":" + brokerPort);
+							System.out.println("EVENTBOX-BROKER started at " +  brokerHost + ":" + brokerPort);
 							System.out.println();
 						} else {
-							startPromise.fail(http.cause());
-							stopApplication("Error launching http server, Cause: " + http.cause().getMessage());
+							System.err.println();
+							startPromise.fail("Error launching http server, Caused By :" 
+												+ http.cause().getMessage());
+							stopApplication();
 						}
 					});
 				}).onFailure(err -> {
-					startPromise.fail(err.getMessage());
-					stopApplication("Error reaching eventbox-admin server, Cause : " + err.getMessage());
+					System.err.println();
+					startPromise.fail("Unable to connect to EVENTBOX-ADMIN Server - "
+										+ "Check that EVENTBOX-ADMIN Server is running "
+										+ "before starting the Borker, Caused By : " 
+										+ err.getMessage());
+					stopApplication();
 				});
 
 	}

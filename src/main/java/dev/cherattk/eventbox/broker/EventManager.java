@@ -127,7 +127,13 @@ public class EventManager {
 						eventBindingMap.put(ceKey, jsonObj.getJsonArray("listeners"));
 					}
 					System.out.print("INFO: ");
-					System.out.println("Event/Listener Map Size : " + eventBindingMap.size());
+					System.out.println("Successfully loading Event/Listener Binding");
+					if(eventBindingMap.size() == 0) {
+						System.out.println("Event/Listener Map is empty");
+						System.out.println("You need to "
+								+ "Bind Listener to Event in "
+								+ "EVENTBOX-ADMIN Board AND restart The EVENTBOX-BROKER");
+					}
 				}
 		});
 
