@@ -1,11 +1,5 @@
 package dev.cherattk.eventbox.broker;
 
-import java.net.URI;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import io.vertx.core.parsetools.JsonParser;
 
 import io.vertx.core.AbstractVerticle;
