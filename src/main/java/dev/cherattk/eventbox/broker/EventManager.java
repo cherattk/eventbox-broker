@@ -129,10 +129,12 @@ public class EventManager {
 					System.out.print("INFO: ");
 					System.out.println("Successfully loading Event/Listener Binding");
 					if(eventBindingMap.size() == 0) {
+						System.out.println("================= Warning =================");
 						System.out.println("Event/Listener Map is empty");
 						System.out.println("You need to "
 								+ "Bind Listener to Event in "
-								+ "EVENTBOX-ADMIN Board AND restart The EVENTBOX-BROKER");
+								+ "EVENTBOX-ADMIN Board AND restart The BROKER");
+						System.out.println("===========================================");
 					}
 				}
 		});

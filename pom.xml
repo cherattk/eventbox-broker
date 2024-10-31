@@ -4,11 +4,16 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
+	<name>eventbox-broker</name>
+	<url>https://github.com/cherattk/eventbox-broker</url>
+	<description>An HTTP Cloudevents Broker</description>
+
 	<groupId>dev.cherattk.eventbox</groupId>
 	<artifactId>broker</artifactId>
-	<version>1.0.0-SNAPSHOT</version>
+	<version>1.0.0</version>
 
 	<properties>
+		<java.version>11</java.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
 		<maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
@@ -21,27 +26,14 @@
 
 		<main.verticle>dev.cherattk.eventbox.broker.BrokerVerticle</main.verticle>
 		<launcher.class>io.vertx.core.Launcher</launcher.class>
-		    
-	</properties>
-	
-	
 
-	<profiles>
-		<profile>
-			<id>development</id>
-			<properties>
-				<env>dev</env>
-				<server.port>8080</server.port>
-			</properties>
-		</profile>
-		<profile>
-			<id>production</id>
-			<properties>
-				<env>prod</env>
-				<server.port>8443</server.port>
-			</properties>
-		</profile>
-	</profiles>
+		<!--
+		<fat.jar.file>${project.name}-${project.version}-fat.jar</fat.jar.file>
+		-->
+		<fat.jar.file>${project.name}-${project.version}-fat.jar</fat.jar.file>
+
+
+	</properties>
 
 	<dependencyManagement>
 		<dependencies>
@@ -64,11 +56,6 @@
 		<dependency>
 			<groupId>io.vertx</groupId>
 			<artifactId>vertx-web-client</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>io.vertx</groupId>
-			<artifactId>vertx-config</artifactId>
 		</dependency>
 
 		<dependency>
@@ -133,7 +120,7 @@
 									implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
 							</transformers>
 							<outputFile>
-								${project.build.directory}/${project.artifactId}-${project.version}-fat.jar
+								${project.build.directory}/${fat.jar.file}
 							</outputFile>
 						</configuration>
 					</execution>
@@ -143,6 +130,7 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>${maven-surefire-plugin.version}</version>
 			</plugin>
+
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>exec-maven-plugin</artifactId>
