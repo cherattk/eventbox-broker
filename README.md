@@ -2,10 +2,10 @@
 
 #### Set required environment variable
 ```bash
-export EVENTBOX_ADMIN_HOST="http://eventbox-admin-hostname:8080"
+export EVENTBOX_ADMIN_HOST="http://eventbox-admin-hostname:port-number"
 ```
 
-#### $$\color{red}Important$$ : [eventbox/admin](https://github.com/cherattk/eventbox-admin?tab=readme-ov-file#eventboxadmin100) MUST be started before running the broker
+#### $$\color{red}Important$$ : [eventbox/admin](https://github.com/cherattk/eventbox-admin?tab=readme-ov-file#eventboxadmin100) MUST be started before running the broker.
 
 #### Run without building fat jar
 ```bash
