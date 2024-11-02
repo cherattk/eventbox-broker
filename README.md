@@ -1,23 +1,23 @@
 #### EventBox/Broker:1.0.0
 
-#### Set required environment variable
-```bash
-export EVENTBOX_ADMIN_HOST="http://eventbox-admin-hostname:port-number"
-```
-
-#### $$\color{red}Important$$ : [eventbox/admin](https://github.com/cherattk/eventbox-admin?tab=readme-ov-file#eventboxadmin100) MUST be started before running the broker.
-
-#### Run without building fat jar
-```bash
-./mvnw clean compile exec:java
-```
-
-#### Build fat jar
+#### Build jar
 ```bash
 ./mvnw clean package
 ```
 
-#### Run fat jar
+#### $$\color{red}Important$$ : [eventbox/admin](https://github.com/cherattk/eventbox-admin?tab=readme-ov-file#eventboxadmin100) MUST be started before running the broker.
+
+#### build docker image
 ```bash
-java -jar target/eventbox-broker-1.0.0-fat.jar
+docker build -t eventbox/broker:1.0.0 .
+```
+
+#### build container
+```bash
+docker container create --name eventbox-broker-1.0.0 --publish 8081:80 eventbox/broker:1.0.0
+```
+
+#### run container
+```bash
+docker start -a eventbox-broker-1.0.0
 ```

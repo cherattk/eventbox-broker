@@ -1,1 +1,2 @@
 - Add SSL Support If Clustered
+- Add api endpoint to list the loaded event/listener mapping

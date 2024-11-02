@@ -128,7 +128,7 @@ public class EventManager {
 						System.out.println("Event/Listener Map is empty");
 						System.out.println("You need to "
 								+ "Bind Listener to Event in "
-								+ "EVENTBOX-ADMIN Board AND restart The BROKER");
+								+ "EVENTBOX/ADMIN Board AND restart The BROKER");
 						System.out.println("===========================================");
 					}
 				}

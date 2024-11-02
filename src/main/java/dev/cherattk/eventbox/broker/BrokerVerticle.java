@@ -6,7 +6,6 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
-import io.vertx.ext.auth.authentication.TokenCredentials;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.codec.BodyCodec;
@@ -54,11 +53,11 @@ public class BrokerVerticle extends AbstractVerticle {
 		
 		BodyCodec<Void> bodyCodec = BodyCodec.jsonStream(parser);
 		
-		System.out.println();
-		System.out.println("================= EventBox Broker =========");
-		
 		
 		String eventbox_amdin_api_endpoint = EVENTBOX_ADMIN_HOST + API_MAP_ENDPOINT;
+
+		System.out.println();
+		System.out.println("================= EventBox Broker =========");		
 		System.out.println("Trying the reach EventBox/Admin at : " + eventbox_amdin_api_endpoint);
 		
 		webClient.requestAbs(HttpMethod.GET, eventbox_amdin_api_endpoint)
@@ -74,7 +73,7 @@ public class BrokerVerticle extends AbstractVerticle {
 					server.listen(EVENTBOX_BROKER_PORT, EVENTBOX_BROKER_HOST , http -> {
 						if (http.succeeded()) {
 							startPromise.complete();
-							System.out.println("EVENTBOX-BROKER started at " +  
+							System.out.println("EVENTBOX/BROKER started at " +  
 							EVENTBOX_BROKER_HOST + ":" + EVENTBOX_BROKER_PORT);
 							System.out.println();
 						} else {
